@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+export PYTHONPATH=.:/app/MuDA/:
+
+# Get the parameter
+while getopts d:n:o:t:p:m:c flag
+do
+    case "${flag}" in
+        d) data_dir=${OPTARG};;
+        n) data_name=${OPTARG};;
+        o) output_path=${OPTARG};;
+        t) tgt_lang=${OPTARG};;
+        p) docid_path=${OPTARG};;
+        m) muda_lang=${OPTARG};;
+        c) convert_meta=false;; # Flag to not convert metadata
+        *) echo "Invalid option: -$OPTARG" >&2; exit 1;;
+    esac
+done
+
+# Default setting for running the optional process 1: convert metadata
+convert_meta=${convert_meta:-true}
+
+# 1. Convert meta data to docid file that MuDA needs (Optional)
+if [ "$convert_meta" = true ];
+then
+    docker run --rm -it -u $(id -u):$(id -g) --platform linux/amd64 -v $HOME:/app/home -v ./${data_dir}:/${data_dir} -v ./${output_path}:/${output_path}  registry.invalid/muda convert_docid.py \
+        --meta_path /$data_dir/$data_name/en${tgt_lang}/meta/${data_name}.en${tgt_lang}.meta \
+        --docid_path /$docid_path
+fi
+
+# 2. Run MuDA tagger 
+docker run --rm -it -u $(id -u):$(id -g) --platform linux/amd64 -v $HOME:/app/home -v ./${data_dir}:/${data_dir} -v ./${output_path}:/${output_path} registry.invalid/muda /app/MuDA/muda/main.py \
+    --src /$data_dir/$data_name/en${tgt_lang}/source/$data_name.en${tgt_lang}.en \
+    --tgt /$data_dir/$data_name/en${tgt_lang}/ref/$data_name.en${tgt_lang}.$tgt_lang \
+    --docids /$docid_path \
+    --dump-tags /$output_path/$data_name/en${tgt_lang}/${data_name}.en${tgt_lang}.tags \
+    --tgt-lang "$muda_lang"

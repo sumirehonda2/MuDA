@@ -47,3 +47,28 @@ python muda/main.py \
 ```
 
 Note that MuDA relies on an `docids` file, containing the same number of lines as the `src/tgt` files and where each line contains a *document id* to which the source/target in the line belong to.
+
+# Docker for MuDA
+We share the docker environment for running MuDA.
+
+First, to build the docker image with a conda environment there, you can run
+```bash
+./docker_build.sh 
+```
+Second, to run muda tagger, you can run 
+```bash
+./muda-docker -d example_data/docker_example_data -n "testdata" -o example_data/docker_example_output -t zh -p example_data/docker_example_output/testdata/enzh/testdata.enzh.meta.docids -m zh
+```
+The ```muda-docker``` takes the example data in ```example_data/docker_example_data```.
+By default, ```muda-docker``` initially takes an optional process to convert ```meta``` data under ```docker_example_data``` into docids data that MuDA requires, and after that it runs the MuDA tagger.
+When you have already the converted docids data that MuDA requires, you can skip the optional process by simply adding a flag ```-c``` like below. 
+```bash
+./muda-docker -c -d example_data/docker_example_data -n "testdata" -o example_data/docker_example_output -t zh -p example_data/docker_example_output/testdata/enzh/testdata.enzh.meta.docids -m zh
+```
+Depending on your use case, you can replace the parameters below.  
+- ```-d```: data directory where you store input data
+- ```-n```: data name you are going to use, and that should be the subfolder name under the data directory
+- ```-o```: output directory
+- ```-t```: target language code of the data that is shown in the file extension (e.g. our data files under ```docker_example_data```)
+- ```-p```: the file path of the docid file which you convert from meta data
+- ```-m```: target language code that muda requires (can be different from ```-t```)

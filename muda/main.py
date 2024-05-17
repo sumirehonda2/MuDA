@@ -130,7 +130,7 @@ def main(args: Dict[str, Any]) -> None:
 
     if args["dump_tags"]:
         with open(args["dump_tags"], "w", encoding="utf-8") as f:
-            json.dump(recursive_map(lambda t: t._asdict(), tagged_refs), f, indent=2)
+            json.dump(recursive_map(lambda t: t._asdict(), tagged_refs), f, indent=2, ensure_ascii=False)
 
 
 if __name__ == "__main__":
